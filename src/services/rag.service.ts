@@ -5,8 +5,7 @@ import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 import { PromptTemplate } from '@langchain/core/prompts';
 
-// Add embedding type
-type EmbeddingProvider = 'ollama' | 'huggingface';
+export type EmbeddingProvider = 'ollama' | 'huggingface';
 
 // Function to get embeddings based on provider
 const getEmbeddings = (provider: EmbeddingProvider) => {
@@ -69,5 +68,9 @@ Answer the question based on the above context: {question}
     return formattedPrompt;
 }
 
-
-export {loadDocs, splidDocs, vectorSaveAndSearch, generatePrompt}
+export {
+    loadDocs,
+    splidDocs,
+    vectorSaveAndSearch,
+    generatePrompt
+};
