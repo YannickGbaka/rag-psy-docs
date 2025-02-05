@@ -1,8 +1,26 @@
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf"
 import { OllamaEmbeddings } from "@langchain/ollama";
+import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
-import {PromptTemplate} from '@langchain/core/prompts';
+import { PromptTemplate } from '@langchain/core/prompts';
+
+// Add embedding type
+type EmbeddingProvider = 'ollama' | 'huggingface';
+
+// Function to get embeddings based on provider
+const getEmbeddings = (provider: EmbeddingProvider) => {
+    switch (provider) {
+        case 'huggingface':
+            return new HuggingFaceInferenceEmbeddings({
+                apiKey: process.env.HUGGINGFACE_API_KEY,
+                model: "sentence-transformers/all-mpnet-base-v2", // You can change this model
+            });
+        case 'ollama':
+        default:
+            return new OllamaEmbeddings();
+    }
+};
 
 const loadDocs = async (file_path: string) =>{
     const loader = new PDFLoader(file_path);
@@ -19,9 +37,8 @@ const splidDocs = async (docs)=>{
  return allSplits;
 }
 
-const vectorSaveAndSearch = async(splits, question)=>{
-
-    const embeddings = new OllamaEmbeddings();
+const vectorSaveAndSearch = async(splits, question, provider: EmbeddingProvider = 'huggingface') => {
+    const embeddings = getEmbeddings(provider);
     const vectorStore = await MemoryVectorStore.fromDocuments(splits, embeddings);
 
     const searches = await vectorStore.similaritySearch(question);
