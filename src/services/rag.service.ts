@@ -38,8 +38,21 @@ const splidDocs = async (docs)=>{
 
 const vectorSaveAndSearch = async(splits, question, provider: EmbeddingProvider = 'huggingface') => {
     const embeddings = getEmbeddings(provider);
-    const vectorStore = await MemoryVectorStore.fromDocuments(splits, embeddings);
+    
+    const batchSize = 100;
+    let vectorStore: MemoryVectorStore | null = null;
 
+    // Process in batches
+    for (let i = 0; i < splits.length; i += batchSize) {
+        const batch = splits.slice(i, i + batchSize);
+        if (!vectorStore) {
+            vectorStore = await MemoryVectorStore.fromDocuments(batch, embeddings);
+        } else {
+            await vectorStore.addDocuments(batch);
+        }
+    }
+
+    if(!vectorStore) return [];
     const searches = await vectorStore.similaritySearch(question);
     return searches;
 }
