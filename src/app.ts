@@ -7,14 +7,54 @@ import { generateOutput, type AIProvider } from './services/ai.service.ts';
 
 const app = express();
 
+// Update CORS configuration to be more permissive for development
+app.use(cors({
+  origin: '*', // For development only - update this for production
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
-app.use(cors());
+// Disable helmet temporarily for testing
+// app.use(helmet());
 
-app.use(express.json());
-app.use(express.query());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-app.use(helmet());
-app.use(express.urlencoded({extended: true}));
+// Add a test endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+// Simplify the voice chat endpoint for testing
+app.post('/voice-chat', async (request, response) => {
+    const { audioText } = request.body;
+    
+    if (!audioText) {
+        return response.status(400).json({
+            message: "No audio text provided"
+        });
+    }
+
+    try {
+        console.log('Received text:', audioText); // Debug log
+        
+        const result = await generateOutput(audioText, 'huggingface');
+        console.log('AI Response:', result); // Debug log
+        
+        response.json({
+            message: "Response generated successfully",
+            data: {
+                content: result.content || result.text,
+            },
+        });
+    } catch (error) {
+        console.error('Error in voice-chat:', error);
+        response.status(500).json({
+            message: "An error occurred while processing voice input",
+            error: error.message
+        });
+    }
+});
 
 app.post('/upload', uploadFile.single('file'), async (request, response)=>{
     const {file} = request;

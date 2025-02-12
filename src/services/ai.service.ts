@@ -9,7 +9,7 @@ const getAIModel = (provider: AIProvider) => {
         case 'huggingface':
             return new HuggingFaceInference({
                 apiKey: process.env.HUGGINGFACE_API_KEY,
-                model: "mistralai/Mixtral-8x7B-Instruct-v0.1", // You can change this model
+                model: "microsoft/Phi-3.5-mini-instruct", // You can change this model
                 temperature: 0.7,
                 maxTokens: 1000,
             });
